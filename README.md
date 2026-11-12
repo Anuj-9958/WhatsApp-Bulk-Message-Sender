@@ -1,6 +1,8 @@
 # School WhatsApp Bulk Sender
 
 A local, browser-based WhatsApp bulk notification portal built with Express and `@whiskeysockets/baileys` for school administrative staff.
+
+
 Note : run ** npm install** once before launching Start_School_WhatsApp.bat.
 ## Quick Start
 
