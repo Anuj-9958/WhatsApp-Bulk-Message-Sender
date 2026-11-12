@@ -1,0 +1,2155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>School WhatsApp Bulk Sender</title>
+  <style>
+    :root {
+      --bg: #f0f5f4;
+      --surface: #ffffff;
+      --surface-muted: #f7faf9;
+      --border: #cde2de;
+      --border-strong: #00796b;
+      --text: #102a27;
+      --text-muted: #3f5e59;
+      --text-light: #647f7a;
+      --primary: #00796b;
+      --primary-dark: #005b4f;
+      --primary-mint: #cdece7;
+      --primary-soft: #e6f6f4;
+      --wa-green: #075e54;
+      --wa-teal: #128c7e;
+      --wa-bubble: #dcf8c6;
+      --wa-bg: #efeae2;
+      --success: #15803d;
+      --success-bg: #dcfce7;
+      --warning: #b45309;
+      --warning-bg: #fef3c7;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+      --danger-bg: #fee2e2;
+      --shadow: 0 2px 8px rgba(0, 77, 64, 0.07), 0 1px 3px rgba(0, 0, 0, 0.05);
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 18px 20px 44px;
+    }
+
+    /* Header */
+    .header-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-top: 4px solid var(--primary);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px 22px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0, 121, 107, 0.25);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.24rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      font-size: 0.84rem;
+      color: var(--text-light);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .status-connected {
+      background: var(--success-bg);
+      color: var(--success);
+      border-color: #bbf7d0;
+    }
+
+    .status-qr {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border-color: #fde68a;
+    }
+
+    .status-disconnected {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border-color: #fecaca;
+    }
+
+    .linked-number {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      background: var(--primary-soft);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
+    /* Segmented Pill Toggle (WARocket Inspired) */
+    .segmented-bar {
+      display: inline-flex;
+      width: 100%;
+      border: 1.5px solid var(--border-strong);
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--primary-mint);
+      margin-bottom: 16px;
+    }
+
+    .seg-btn {
+      flex: 1;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      color: var(--primary-dark);
+      padding: 9px 14px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: background-color 0.15s, color 0.15s;
+    }
+
+    .seg-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .seg-btn:hover:not(.active) {
+      background: rgba(0, 121, 107, 0.12);
+    }
+
+    /* Buttons */
+    button, .btn {
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 9px 16px;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: background-color 0.15s, border-color 0.15s, opacity 0.15s, transform 0.05s;
+      text-decoration: none;
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-rocket {
+      background: var(--primary-mint);
+      color: var(--primary-dark);
+      border-color: var(--border-strong);
+      font-weight: 700;
+    }
+
+    .btn-rocket:hover:not(:disabled) {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-dark);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: var(--danger-hover);
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .btn-outline:hover:not(:disabled) {
+      background: var(--surface-muted);
+      border-color: var(--border-strong);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .btn-success:hover:not(:disabled) {
+      background: #166534;
+    }
+
+    .btn-sm {
+      padding: 6px 11px;
+      font-size: 0.82rem;
+    }
+
+    /* QR Banner */
+    .qr-panel {
+      background: var(--surface);
+      border: 1.5px solid #fde68a;
+      border-left: 5px solid #d97706;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px 22px;
+      margin-bottom: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 22px;
+    }
+
+    .qr-panel.hidden {
+      display: none;
+    }
+
+    .qr-box {
+      width: 210px;
+      height: 210px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      flex-shrink: 0;
+    }
+
+    .qr-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .qr-instructions h2 {
+      margin: 0 0 8px;
+      font-size: 1.08rem;
+    }
+
+    .qr-instructions ol {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    .qr-instructions li + li {
+      margin-top: 4px;
+    }
+
+    .error-banner {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid #fecaca;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 18px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .error-banner.hidden {
+      display: none;
+    }
+
+    /* Layout Grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 0.95fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 960px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px 22px;
+    }
+
+    .card-title {
+      margin: 0 0 14px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--primary-mint);
+      color: var(--primary-dark);
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-right: 8px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      display: block;
+      font-weight: 700;
+      font-size: 0.88rem;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin-top: 5px;
+    }
+
+    input[type="file"],
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      font-family: inherit;
+      font-size: 0.92rem;
+      border: 1.5px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 9px 12px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input[type="file"] {
+      padding: 8px 10px;
+      background: var(--surface-muted);
+      cursor: pointer;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus,
+    textarea:focus {
+      outline: 2px solid rgba(0, 121, 107, 0.22);
+      border-color: var(--primary-dark);
+    }
+
+    textarea {
+      min-height: 132px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Switch Toggle (WARocket Send Attachment) */
+    .switch-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: #ffffff;
+      border: 2px solid var(--border-strong);
+      transition: 0.2s;
+      border-radius: 999px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 2px;
+      background-color: #647f7a;
+      transition: 0.2s;
+      border-radius: 50%;
+    }
+
+    .switch input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    .switch input:checked + .slider:before {
+      transform: translateX(21px);
+      background-color: #ffffff;
+    }
+
+    /* Inline Delay Range Bar (WARocket style) */
+    .delay-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 14px;
+      background: var(--primary-soft);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+
+    .delay-input {
+      width: 72px !important;
+      padding: 5px 8px !important;
+      text-align: center;
+      font-weight: 700;
+      border-radius: 7px !important;
+    }
+
+    .delay-warning {
+      font-size: 0.78rem;
+      color: var(--warning);
+      font-weight: 600;
+      width: 100%;
+      margin-top: 2px;
+    }
+
+    /* CSV Validation Summary */
+    .csv-summary {
+      margin-top: 10px;
+      padding: 11px 13px;
+      border-radius: 8px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+
+    .csv-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .stat-pill {
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.78rem;
+    }
+
+    .stat-total { background: #e2e8f0; color: #334155; }
+    .stat-valid { background: var(--success-bg); color: var(--success); }
+    .stat-invalid { background: var(--danger-bg); color: var(--danger); }
+    .stat-selected { background: var(--primary-mint); color: var(--primary-dark); }
+
+    .invalid-list {
+      margin-top: 9px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border);
+      max-height: 110px;
+      overflow-y: auto;
+      font-size: 0.79rem;
+      color: var(--danger);
+    }
+
+    /* Image preview bar */
+    .image-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+    }
+
+    .image-bar img {
+      width: 48px;
+      height: 48px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+    }
+
+    .image-bar-meta {
+      flex: 1;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Clickable variable pills */
+    .tag-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .tag-bar span {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      font-weight: 600;
+    }
+
+    .tag-pill {
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      border: 1px solid var(--border-strong);
+      padding: 4px 11px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tag-pill:hover {
+      background: var(--primary-mint);
+    }
+
+    /* WhatsApp Live Preview */
+    .wa-phone {
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1.5px solid var(--border);
+      background: var(--wa-bg);
+      display: flex;
+      flex-direction: column;
+      min-height: 390px;
+    }
+
+    .wa-header {
+      background: var(--wa-green);
+      color: #fff;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .wa-contact {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .wa-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #25d366;
+      color: #fff;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+    }
+
+    .wa-contact-name {
+      font-weight: 600;
+      font-size: 0.92rem;
+      line-height: 1.2;
+    }
+
+    .wa-contact-sub {
+      font-size: 0.75rem;
+      opacity: 0.85;
+    }
+
+    .wa-chat-area {
+      padding: 18px 16px;
+      flex: 1;
+      background-image: radial-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 1px);
+      background-size: 16px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .wa-bubble {
+      background: var(--wa-bubble);
+      border-radius: 10px;
+      border-top-right-radius: 2px;
+      padding: 8px 10px 6px;
+      max-width: 92%;
+      align-self: flex-end;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+      word-break: break-word;
+    }
+
+    .wa-bubble-img {
+      width: 100%;
+      max-height: 210px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .wa-bubble-text {
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      color: #111b21;
+      margin: 0;
+    }
+
+    .wa-bubble-meta {
+      text-align: right;
+      font-size: 0.7rem;
+      color: #667781;
+      margin-top: 4px;
+    }
+
+    .preview-switcher {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--text-light);
+    }
+
+    /* CSV Data Preview & Selection Card */
+    .csv-preview-card {
+      margin-bottom: 18px;
+    }
+
+    .csv-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .csv-search {
+      max-width: 300px;
+      padding: 6px 11px !important;
+      font-size: 0.85rem !important;
+    }
+
+    .csv-selection-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mapping-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 0.78rem;
+    }
+
+    .mapping-chip {
+      background: var(--primary-soft);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 3px 9px;
+    }
+
+    .mapping-chip strong {
+      color: var(--primary-dark);
+    }
+
+    .row-checkbox {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .csv-row-clickable {
+      cursor: pointer;
+    }
+
+    .csv-row-clickable:hover {
+      background: #f2fbf9;
+    }
+
+    .csv-row-active {
+      background: #dff4f0 !important;
+    }
+
+    .csv-row-unchecked {
+      opacity: 0.58;
+    }
+
+    /* Campaign Dashboard */
+    .campaign-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .progress-wrap {
+      margin-bottom: 14px;
+    }
+
+    .progress-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 14px;
+      background: #dce9e7;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), #22c55e);
+      transition: width 0.25s ease;
+    }
+
+    .telemetry-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      min-height: 24px;
+    }
+
+    .table-wrap {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      max-height: 290px;
+      overflow: auto;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: var(--primary-soft);
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1.5px solid var(--border);
+      font-weight: 700;
+      color: var(--primary-dark);
+      z-index: 1;
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #eef5f4;
+      vertical-align: middle;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .row-badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .row-sent {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    .row-failed {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .empty-table {
+      text-align: center;
+      padding: 28px 16px;
+      color: var(--text-light);
+      font-size: 0.88rem;
+    }
+
+    /* Footer Counter Strip (WARocket style) */
+    .footer-strip {
+      margin-top: 14px;
+      background: var(--primary-mint);
+      border: 1.5px solid var(--border-strong);
+      border-radius: 10px;
+      padding: 9px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Connection Header -->
+    <header class="header-card">
+      <div class="brand">
+        <div class="brand-icon">🚀</div>
+        <div>
+          <h1>School WhatsApp Bulk Sender</h1>
+          <p>Selective CSV targeting, live preview, and customizable anti-ban message delays</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <span id="statusBadge" class="status-badge status-qr">
+          <span class="status-dot"></span>
+          <span id="statusText">Connecting...</span>
+        </span>
+        <span id="linkedNumber" class="linked-number" style="display: none;"></span>
+        <button id="logoutBtn" class="btn-outline btn-sm" type="button">
+          Disconnect / Switch Number
+        </button>
+      </div>
+    </header>
+
+    <!-- Global Alert Banner -->
+    <div id="alertBanner" class="error-banner hidden" role="alert">
+      <span id="alertText"></span>
+      <button id="dismissAlertBtn" type="button" class="btn-outline btn-sm">Dismiss</button>
+    </div>
+
+    <!-- QR Scanner Panel -->
+    <section id="qrPanel" class="qr-panel hidden">
+      <div class="qr-box">
+        <img id="qrImage" alt="WhatsApp QR Code" />
+      </div>
+      <div class="qr-instructions">
+        <h2>Link School WhatsApp Account</h2>
+        <ol>
+          <li>Open <strong>WhatsApp</strong> on your school/office mobile phone.</li>
+          <li>Go to <strong>Menu (⋮) / Settings &rarr; Linked Devices</strong>.</li>
+          <li>Tap <strong>Link a Device</strong> and scan this QR code.</li>
+        </ol>
+        <p class="hint" style="margin-top: 10px;">
+          The QR code refreshes automatically if it expires. Status updates live without refreshing the page.
+        </p>
+      </div>
+    </section>
+
+    <!-- Main Two-Column Composer & Live Preview -->
+    <div class="main-grid">
+      <!-- Left: WARocket-inspired Sender Card -->
+      <section class="card">
+        <h2 class="card-title">
+          <span><span class="step-num">1</span>Recipients &amp; Message Composer</span>
+        </h2>
+
+        <!-- Segmented Mode Toggle -->
+        <div class="segmented-bar" role="tablist" aria-label="Recipient input mode">
+          <button id="modeCsvBtn" type="button" class="seg-btn active" role="tab" aria-selected="true">
+            📤 Upload CSV
+          </button>
+          <button id="modeNumbersBtn" type="button" class="seg-btn" role="tab" aria-selected="false">
+            🔢 Number List
+          </button>
+        </div>
+
+        <!-- Mode A: CSV Upload -->
+        <div id="csvModePane" class="field">
+          <label for="csvInput">Student Database (.csv)</label>
+          <input id="csvInput" type="file" accept=".csv,text/csv" />
+          <div class="hint">
+            Supports flexible headers: <code>Ledger Number / Ac Ledger No</code>, <code>Father Name</code>,
+            <code>Student Name</code>, <code>Mobile Number / Contact No</code>. 10-digit numbers automatically get <code>91</code>.
+          </div>
+
+          <div id="csvSummary" class="csv-summary hidden">
+            <div class="csv-stats">
+              <span id="statTotal" class="stat-pill stat-total">Total: 0</span>
+              <span id="statValid" class="stat-pill stat-valid">Valid: 0</span>
+              <span id="statInvalid" class="stat-pill stat-invalid">Skipped: 0</span>
+              <span id="statSelected" class="stat-pill stat-selected">Selected: 0</span>
+            </div>
+            <div id="invalidList" class="invalid-list" style="display: none;"></div>
+          </div>
+        </div>
+
+        <!-- Mode B: Quick Number List -->
+        <div id="numbersModePane" class="field hidden">
+          <label for="numbersTextarea">Phone numbers (separate with comma or newline):</label>
+          <textarea
+            id="numbersTextarea"
+            style="min-height: 92px;"
+            placeholder="9876543210, 919811122334&#10;919900112233"
+          ></textarea>
+          <div class="hint">
+            Enter 10-digit Indian numbers (auto-prepends <code>91</code>) or international numbers with country code.
+            <strong id="numbersCountLabel" style="color: var(--primary-dark);">0 valid number(s)</strong>
+          </div>
+        </div>
+
+        <!-- Template Preset + Message -->
+        <div class="field">
+          <label for="presetSelect">Message Template Preset</label>
+          <select id="presetSelect">
+            <option value="fee">Fee Reminder</option>
+            <option value="absent">Absentee Alert</option>
+            <option value="holiday">Holiday / General Notice</option>
+            <option value="custom">Custom Message</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="messageBox">Message</label>
+          <div id="tagBar" class="tag-bar">
+            <span>Insert Tag:</span>
+            <button type="button" class="tag-pill" data-tag="{father_name}">+ Father Name</button>
+            <button type="button" class="tag-pill" data-tag="{student_name}">+ Student Name</button>
+            <button type="button" class="tag-pill" data-tag="{ledger_number}">+ Ledger No.</button>
+          </div>
+          <textarea
+            id="messageBox"
+            placeholder="Enter message... Click the variable pills above to insert student details."
+          ></textarea>
+        </div>
+
+        <!-- WARocket Send Attachment Toggle Switch -->
+        <div class="field" style="margin-bottom: 14px;">
+          <div class="switch-row">
+            <label class="switch" for="attachmentToggle">
+              <input id="attachmentToggle" type="checkbox" />
+              <span class="slider"></span>
+            </label>
+            <label for="attachmentToggle" style="margin: 0; cursor: pointer;">Send attachment (Image / Flyer)</label>
+          </div>
+
+          <div id="attachmentPane" class="hidden">
+            <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+            <div id="imageBar" class="image-bar hidden">
+              <img id="imageThumb" alt="Attachment thumbnail" />
+              <div id="imageName" class="image-bar-meta"></div>
+              <button id="removeImageBtn" type="button" class="btn-outline btn-sm">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- WARocket Variable Delay Controls -->
+        <div class="delay-box">
+          <span>Add a random time delay of</span>
+          <input
+            id="minDelayInput"
+            class="delay-input"
+            type="number"
+            min="0"
+            max="600"
+            step="1"
+            value="6"
+            aria-label="Minimum delay in seconds"
+          />
+          <span>and</span>
+          <input
+            id="maxDelayInput"
+            class="delay-input"
+            type="number"
+            min="0"
+            max="600"
+            step="1"
+            value="11"
+            aria-label="Maximum delay in seconds"
+          />
+          <span>seconds between messages.</span>
+          <div id="delayWarning" class="delay-warning hidden">
+            Tip: Delays under 3 seconds increase the risk of WhatsApp spam blocks.
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="campaign-controls" style="margin-bottom: 6px;">
+          <button id="startBtn" type="button" class="btn-rocket" disabled>
+            🚀 Send WhatsApp
+          </button>
+          <button id="stopBtn" type="button" class="btn-danger" disabled>
+            ⏹ Stop Campaign
+          </button>
+        </div>
+        <div class="hint" style="margin-top: 2px;">
+          Please use responsibly. Avoid spamming.
+        </div>
+      </section>
+
+      <!-- Right: Live WhatsApp Bubble Preview -->
+      <section class="card">
+        <div class="card-title">
+          <span><span class="step-num">2</span>Live WhatsApp Preview</span>
+          <div id="previewSwitcher" class="preview-switcher" style="display: none;">
+            <button id="prevRowBtn" type="button" class="btn-outline btn-sm">&lsaquo;</button>
+            <span id="previewCounter">1 / 1</span>
+            <button id="nextRowBtn" type="button" class="btn-outline btn-sm">&rsaquo;</button>
+          </div>
+        </div>
+
+        <div class="wa-phone">
+          <div class="wa-header">
+            <div class="wa-contact">
+              <div class="wa-avatar">P</div>
+              <div>
+                <div id="previewParentName" class="wa-contact-name">Parent (Sample Preview)</div>
+                <div id="previewPhone" class="wa-contact-sub">+91 98765 43210</div>
+              </div>
+            </div>
+            <span style="font-size: 0.75rem; opacity: 0.85;">WhatsApp Preview</span>
+          </div>
+
+          <div class="wa-chat-area">
+            <div class="wa-bubble">
+              <img id="previewImage" class="wa-bubble-img hidden" alt="Preview attachment" />
+              <p id="previewText" class="wa-bubble-text"></p>
+              <div class="wa-bubble-meta">12:00 PM ✓✓</div>
+            </div>
+          </div>
+        </div>
+        <p class="hint" style="margin-top: 10px;">
+          Upload a CSV and select rows below to preview the exact message before sending.
+        </p>
+      </section>
+    </div>
+
+    <!-- Uploaded CSV Data Preview & Selective Checkboxes -->
+    <section id="csvPreviewCard" class="card csv-preview-card hidden">
+      <div class="card-title" style="margin-bottom: 10px;">
+        <span>Uploaded CSV Preview &amp; Recipient Selection</span>
+        <span id="csvPreviewCount" class="hint" style="margin: 0; font-weight: 700;"></span>
+      </div>
+
+      <div id="mappingChips" class="mapping-chips"></div>
+
+      <div class="csv-toolbar">
+        <input
+          id="csvSearchInput"
+          class="csv-search"
+          type="text"
+          placeholder="Search student, father, class, ledger, or mobile..."
+        />
+        <div class="csv-selection-actions">
+          <button id="selectAllBtn" type="button" class="btn-outline btn-sm">Select All Valid</button>
+          <button id="deselectAllBtn" type="button" class="btn-outline btn-sm">Clear Selection</button>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="max-height: 280px;">
+        <table>
+          <thead id="csvPreviewHead"></thead>
+          <tbody id="csvPreviewBody"></tbody>
+        </table>
+      </div>
+      <p class="hint" style="margin-top: 8px; margin-bottom: 0;">
+        Check only the students you want to message. Click any valid row to preview its message in the WhatsApp box above.
+      </p>
+    </section>
+
+    <!-- Live Campaign Dashboard -->
+    <section class="card">
+      <div class="card-title" style="margin-bottom: 14px;">
+        <span><span class="step-num">3</span>Bulk Delivery Campaign</span>
+        <a
+          id="downloadReportBtn"
+          href="/download-report"
+          class="btn btn-success btn-sm"
+          style="display: none;"
+          download="delivery_report.csv"
+        >
+          Download Delivery Report (.csv)
+        </a>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span id="progressLabel">0 / 0 Processed</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+      </div>
+
+      <div class="telemetry-bar">
+        <span><strong>Sent:</strong> <span id="sentCount">0</span></span>
+        <span><strong>Failed:</strong> <span id="failedCount">0</span></span>
+        <span><strong>Total:</strong> <span id="totalCount">0</span></span>
+        <span id="liveActivity" style="margin-left: auto; color: var(--primary); font-weight: 600;">
+          Idle — ready when connected
+        </span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 55px;">#</th>
+              <th>Student Name</th>
+              <th>Mobile</th>
+              <th style="width: 110px;">Status</th>
+              <th>Details / Reason</th>
+            </tr>
+          </thead>
+          <tbody id="logTableBody">
+            <tr>
+              <td colspan="5" class="empty-table">
+                No campaign logs yet. Select recipients, set your delay in seconds, and click "🚀 Send WhatsApp".
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="footer-strip">
+        <span id="footerSummary">0 of 0 sent</span>
+        <span id="footerDelaySummary">Random delay: 6s – 11s</span>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const PRESETS = {
+      fee:
+        'Dear {father_name},\n\nThis is a gentle reminder from the School Accounts Office regarding the pending school fee for your ward {student_name} (Ledger No: {ledger_number}).\n\nKindly clear the dues at the earliest. Please ignore if already paid.\n\nRegards,\nSchool Administration',
+      absent:
+        'Dear {father_name},\n\nThis is to inform you that your ward {student_name} (Ledger No: {ledger_number}) is marked ABSENT from school today.\n\nIf this absence was unplanned, kindly inform the class teacher.\n\nRegards,\nSchool Office',
+      holiday:
+        'Dear {father_name},\n\nGreetings from School Administration! Please note this important circular for {student_name} (Ledger No: {ledger_number}):\n\nSchool will remain closed tomorrow on account of a declared holiday. Regular classes will resume the next working day.\n\nRegards,\nPrincipal Office',
+      custom:
+        'Dear {father_name},\n\nMessage regarding {student_name} (Ledger No: {ledger_number}):\n\n',
+    };
+
+    const SAMPLE_ROW = {
+      ledgerNumber: 'L-1001',
+      fatherName: 'Mr. Rajesh Sharma',
+      studentName: 'Aarav Sharma',
+      normalizedMobile: '919876543210',
+    };
+
+    // State
+    let waStatus = 'connecting';
+    let inputMode = 'csv'; // 'csv' | 'numbers'
+    let csvHeaders = [];
+    let csvAllRows = [];
+    let selectedRowNumbers = new Set();
+    let previewRows = [];
+    let previewIndex = 0;
+    let validCsvCount = 0;
+    let imageObjectUrl = null;
+    let campaignActive = false;
+    let logRowCount = 0;
+
+    // Elements
+    const statusBadge = document.getElementById('statusBadge');
+    const statusText = document.getElementById('statusText');
+    const linkedNumber = document.getElementById('linkedNumber');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const qrPanel = document.getElementById('qrPanel');
+    const qrImage = document.getElementById('qrImage');
+    const alertBanner = document.getElementById('alertBanner');
+    const alertText = document.getElementById('alertText');
+    const dismissAlertBtn = document.getElementById('dismissAlertBtn');
+
+    const modeCsvBtn = document.getElementById('modeCsvBtn');
+    const modeNumbersBtn = document.getElementById('modeNumbersBtn');
+    const csvModePane = document.getElementById('csvModePane');
+    const numbersModePane = document.getElementById('numbersModePane');
+    const numbersTextarea = document.getElementById('numbersTextarea');
+    const numbersCountLabel = document.getElementById('numbersCountLabel');
+
+    const csvInput = document.getElementById('csvInput');
+    const csvSummary = document.getElementById('csvSummary');
+    const statTotal = document.getElementById('statTotal');
+    const statValid = document.getElementById('statValid');
+    const statInvalid = document.getElementById('statInvalid');
+    const statSelected = document.getElementById('statSelected');
+    const invalidList = document.getElementById('invalidList');
+    const csvPreviewCard = document.getElementById('csvPreviewCard');
+    const csvPreviewCount = document.getElementById('csvPreviewCount');
+    const mappingChips = document.getElementById('mappingChips');
+    const csvSearchInput = document.getElementById('csvSearchInput');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const deselectAllBtn = document.getElementById('deselectAllBtn');
+    const csvPreviewHead = document.getElementById('csvPreviewHead');
+    const csvPreviewBody = document.getElementById('csvPreviewBody');
+
+    const attachmentToggle = document.getElementById('attachmentToggle');
+    const attachmentPane = document.getElementById('attachmentPane');
+    const imageInput = document.getElementById('imageInput');
+    const imageBar = document.getElementById('imageBar');
+    const imageThumb = document.getElementById('imageThumb');
+    const imageName = document.getElementById('imageName');
+    const removeImageBtn = document.getElementById('removeImageBtn');
+
+    const minDelayInput = document.getElementById('minDelayInput');
+    const maxDelayInput = document.getElementById('maxDelayInput');
+    const delayWarning = document.getElementById('delayWarning');
+    const footerSummary = document.getElementById('footerSummary');
+    const footerDelaySummary = document.getElementById('footerDelaySummary');
+
+    const presetSelect = document.getElementById('presetSelect');
+    const messageBox = document.getElementById('messageBox');
+
+    const previewSwitcher = document.getElementById('previewSwitcher');
+    const prevRowBtn = document.getElementById('prevRowBtn');
+    const nextRowBtn = document.getElementById('nextRowBtn');
+    const previewCounter = document.getElementById('previewCounter');
+    const previewParentName = document.getElementById('previewParentName');
+    const previewPhone = document.getElementById('previewPhone');
+    const previewImage = document.getElementById('previewImage');
+    const previewText = document.getElementById('previewText');
+
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const downloadReportBtn = document.getElementById('downloadReportBtn');
+    const progressLabel = document.getElementById('progressLabel');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressFill = document.getElementById('progressFill');
+    const sentCount = document.getElementById('sentCount');
+    const failedCount = document.getElementById('failedCount');
+    const totalCount = document.getElementById('totalCount');
+    const liveActivity = document.getElementById('liveActivity');
+    const logTableBody = document.getElementById('logTableBody');
+
+    function showAlert(msg) {
+      alertText.textContent = msg;
+      alertBanner.classList.remove('hidden');
+    }
+
+    function hideAlert() {
+      alertBanner.classList.add('hidden');
+      alertText.textContent = '';
+    }
+
+    dismissAlertBtn.addEventListener('click', hideAlert);
+
+    function parseLocalNumberList(text) {
+      return String(text || '')
+        .split(/[\r\n,;]+/)
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .map((raw, idx) => {
+          const digits = raw.replace(/\D/g, '');
+          const normalized = digits.length === 10 ? `91${digits}` : digits;
+          const valid = normalized.length >= 11 && normalized.length <= 15 && !normalized.startsWith('0');
+          return {
+            rowNumber: idx + 1,
+            ledgerNumber: '',
+            fatherName: '',
+            studentName: `Recipient #${idx + 1}`,
+            mobileRaw: raw,
+            normalizedMobile: normalized,
+            valid,
+          };
+        });
+    }
+
+    function getDelayRange() {
+      const minSec = Number(minDelayInput.value);
+      const maxSec = Number(maxDelayInput.value);
+      const valid =
+        Number.isFinite(minSec) &&
+        Number.isFinite(maxSec) &&
+        minSec >= 0 &&
+        maxSec <= 600 &&
+        minSec <= maxSec;
+      return { minSec, maxSec, valid };
+    }
+
+    function updateDelayUI() {
+      const { minSec, maxSec, valid } = getDelayRange();
+      if (valid && minSec < 3) {
+        delayWarning.classList.remove('hidden');
+      } else {
+        delayWarning.classList.add('hidden');
+      }
+      footerDelaySummary.textContent = valid
+        ? minSec === maxSec
+          ? `Fixed delay: ${minSec}s`
+          : `Random delay: ${minSec}s – ${maxSec}s`
+        : 'Invalid delay range';
+      updateButtons();
+    }
+
+    minDelayInput.addEventListener('input', updateDelayUI);
+    maxDelayInput.addEventListener('input', updateDelayUI);
+
+    function updateSelectionStats() {
+      statSelected.textContent = `Selected: ${selectedRowNumbers.size}`;
+      const selectedValidRows = csvAllRows.filter(
+        (r) => r.valid && selectedRowNumbers.has(r.rowNumber)
+      );
+      previewRows = selectedValidRows.length > 0 ? selectedValidRows : csvAllRows.filter((r) => r.valid).slice(0, 3);
+      if (previewIndex >= previewRows.length) {
+        previewIndex = 0;
+      }
+      if (!campaignActive) {
+        const targetCount =
+          inputMode === 'csv'
+            ? selectedRowNumbers.size
+            : parseLocalNumberList(numbersTextarea.value).filter((r) => r.valid).length;
+        footerSummary.textContent = `0 of ${targetCount} sent`;
+      }
+      renderLivePreview();
+      updateButtons();
+    }
+
+    function updateButtons() {
+      const hasMessage = messageBox.value.trim().length > 0;
+      const delayOk = getDelayRange().valid;
+
+      let hasRecipients = false;
+      if (inputMode === 'csv') {
+        const hasFile = csvInput.files && csvInput.files.length > 0;
+        hasRecipients = hasFile && validCsvCount > 0 && selectedRowNumbers.size > 0;
+      } else {
+        const validNums = parseLocalNumberList(numbersTextarea.value).filter((r) => r.valid);
+        hasRecipients = validNums.length > 0;
+      }
+
+      startBtn.disabled =
+        campaignActive || waStatus !== 'connected' || !hasRecipients || !hasMessage || !delayOk;
+      stopBtn.disabled = !campaignActive;
+      logoutBtn.disabled = campaignActive;
+    }
+
+    // Mode Switching (Upload CSV vs Number List)
+    function setInputMode(mode) {
+      inputMode = mode;
+      if (mode === 'csv') {
+        modeCsvBtn.classList.add('active');
+        modeCsvBtn.setAttribute('aria-selected', 'true');
+        modeNumbersBtn.classList.remove('active');
+        modeNumbersBtn.setAttribute('aria-selected', 'false');
+        csvModePane.classList.remove('hidden');
+        numbersModePane.classList.add('hidden');
+        if (csvAllRows.length > 0) {
+          csvPreviewCard.classList.remove('hidden');
+        }
+      } else {
+        modeNumbersBtn.classList.add('active');
+        modeNumbersBtn.setAttribute('aria-selected', 'true');
+        modeCsvBtn.classList.remove('active');
+        modeCsvBtn.setAttribute('aria-selected', 'false');
+        numbersModePane.classList.remove('hidden');
+        csvModePane.classList.add('hidden');
+        csvPreviewCard.classList.add('hidden');
+      }
+      updateSelectionStats();
+    }
+
+    modeCsvBtn.addEventListener('click', () => setInputMode('csv'));
+    modeNumbersBtn.addEventListener('click', () => setInputMode('numbers'));
+
+    numbersTextarea.addEventListener('input', () => {
+      const parsed = parseLocalNumberList(numbersTextarea.value);
+      const validNums = parsed.filter((r) => r.valid);
+      numbersCountLabel.textContent = `${validNums.length} valid number(s)`;
+      if (inputMode === 'numbers') {
+        previewRows = validNums;
+        previewIndex = 0;
+        footerSummary.textContent = `0 of ${validNums.length} sent`;
+        renderLivePreview();
+        updateButtons();
+      }
+    });
+
+    function renderLivePreview() {
+      const activePreviewList =
+        inputMode === 'numbers'
+          ? parseLocalNumberList(numbersTextarea.value).filter((r) => r.valid)
+          : previewRows;
+
+      const row = activePreviewList[previewIndex] || SAMPLE_ROW;
+      const isSample = activePreviewList.length === 0;
+
+      if (isSample) {
+        previewParentName.textContent = `${row.fatherName} (Sample)`;
+      } else if (inputMode === 'numbers') {
+        previewParentName.textContent = `Recipient #${previewIndex + 1}`;
+      } else {
+        previewParentName.textContent = `${row.fatherName || 'Parent'} (${row.studentName || 'Student'})`;
+      }
+      previewPhone.textContent = `+${row.normalizedMobile}`;
+
+      const rawMsg = messageBox.value || '(Your message will appear here...)';
+      const formatted = rawMsg
+        .replace(/\{ledger_number\}/gi, row.ledgerNumber || '')
+        .replace(/\{father_name\}/gi, row.fatherName || '')
+        .replace(/\{student_name\}/gi, row.studentName || '');
+
+      previewText.textContent = formatted;
+
+      if (activePreviewList.length > 1) {
+        previewSwitcher.style.display = 'flex';
+        previewCounter.textContent = `${previewIndex + 1} / ${activePreviewList.length}`;
+      } else {
+        previewSwitcher.style.display = 'none';
+      }
+    }
+
+    // Initialize default preset
+    messageBox.value = PRESETS.fee;
+    renderLivePreview();
+    updateDelayUI();
+
+    presetSelect.addEventListener('change', () => {
+      const key = presetSelect.value;
+      if (PRESETS[key] !== undefined) {
+        messageBox.value = PRESETS[key];
+        renderLivePreview();
+        updateButtons();
+      }
+    });
+
+    messageBox.addEventListener('input', () => {
+      renderLivePreview();
+      updateButtons();
+    });
+
+    // Clickable tag pills insert at cursor position
+    document.querySelectorAll('.tag-pill').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const tag = btn.getAttribute('data-tag');
+        const start = messageBox.selectionStart ?? messageBox.value.length;
+        const end = messageBox.selectionEnd ?? messageBox.value.length;
+        const text = messageBox.value;
+        messageBox.value = text.slice(0, start) + tag + text.slice(end);
+        const nextPos = start + tag.length;
+        messageBox.focus();
+        messageBox.setSelectionRange(nextPos, nextPos);
+        renderLivePreview();
+        updateButtons();
+      });
+    });
+
+    prevRowBtn.addEventListener('click', () => {
+      const len =
+        inputMode === 'numbers'
+          ? parseLocalNumberList(numbersTextarea.value).filter((r) => r.valid).length
+          : previewRows.length;
+      if (len === 0) return;
+      previewIndex = (previewIndex - 1 + len) % len;
+      renderLivePreview();
+    });
+
+    nextRowBtn.addEventListener('click', () => {
+      const len =
+        inputMode === 'numbers'
+          ? parseLocalNumberList(numbersTextarea.value).filter((r) => r.valid).length
+          : previewRows.length;
+      if (len === 0) return;
+      previewIndex = (previewIndex + 1) % len;
+      renderLivePreview();
+    });
+
+    // Attachment switch & file preview
+    attachmentToggle.addEventListener('change', () => {
+      if (attachmentToggle.checked) {
+        attachmentPane.classList.remove('hidden');
+      } else {
+        attachmentPane.classList.add('hidden');
+        imageInput.value = '';
+        imageInput.dispatchEvent(new Event('change'));
+      }
+    });
+
+    imageInput.addEventListener('change', () => {
+      const file = imageInput.files?.[0];
+      if (imageObjectUrl) {
+        URL.revokeObjectURL(imageObjectUrl);
+        imageObjectUrl = null;
+      }
+
+      if (!file) {
+        imageBar.classList.add('hidden');
+        previewImage.classList.add('hidden');
+        previewImage.removeAttribute('src');
+        return;
+      }
+
+      imageObjectUrl = URL.createObjectURL(file);
+      imageThumb.src = imageObjectUrl;
+      imageName.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
+      imageBar.classList.remove('hidden');
+
+      previewImage.src = imageObjectUrl;
+      previewImage.classList.remove('hidden');
+    });
+
+    removeImageBtn.addEventListener('click', () => {
+      imageInput.value = '';
+      imageInput.dispatchEvent(new Event('change'));
+    });
+
+    function getFilteredCsvRows() {
+      const query = csvSearchInput.value.trim().toLowerCase();
+      if (!query) return csvAllRows;
+      return csvAllRows.filter((row) =>
+        Object.values(row.raw || {}).some((val) => String(val ?? '').toLowerCase().includes(query)) ||
+        String(row.normalizedMobile || '').includes(query)
+      );
+    }
+
+    function renderCsvPreviewTable() {
+      if (csvHeaders.length === 0 || csvAllRows.length === 0) {
+        csvPreviewCard.classList.add('hidden');
+        return;
+      }
+
+      const filteredRows = getFilteredCsvRows();
+      csvPreviewCount.textContent =
+        filteredRows.length === csvAllRows.length
+          ? `${csvAllRows.length} row(s) • ${selectedRowNumbers.size} selected`
+          : `Showing ${filteredRows.length} of ${csvAllRows.length} row(s) • ${selectedRowNumbers.size} selected`;
+
+      csvPreviewHead.innerHTML = '';
+      const headTr = document.createElement('tr');
+
+      const thCheck = document.createElement('th');
+      thCheck.style.width = '42px';
+      const masterCb = document.createElement('input');
+      masterCb.type = 'checkbox';
+      masterCb.className = 'row-checkbox';
+      masterCb.title = 'Select / Deselect all visible valid rows';
+      const visibleValid = filteredRows.filter((r) => r.valid);
+      masterCb.checked =
+        visibleValid.length > 0 && visibleValid.every((r) => selectedRowNumbers.has(r.rowNumber));
+      masterCb.indeterminate =
+        visibleValid.some((r) => selectedRowNumbers.has(r.rowNumber)) && !masterCb.checked;
+      masterCb.addEventListener('change', () => {
+        visibleValid.forEach((r) => {
+          if (masterCb.checked) {
+            selectedRowNumbers.add(r.rowNumber);
+          } else {
+            selectedRowNumbers.delete(r.rowNumber);
+          }
+        });
+        renderCsvPreviewTable();
+        updateSelectionStats();
+      });
+      thCheck.appendChild(masterCb);
+      headTr.appendChild(thCheck);
+
+      const thRow = document.createElement('th');
+      thRow.textContent = '#';
+      thRow.style.width = '46px';
+      headTr.appendChild(thRow);
+
+      csvHeaders.forEach((h) => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        headTr.appendChild(th);
+      });
+
+      const thStatus = document.createElement('th');
+      thStatus.textContent = 'WhatsApp Status';
+      headTr.appendChild(thStatus);
+      csvPreviewHead.appendChild(headTr);
+
+      csvPreviewBody.innerHTML = '';
+      if (filteredRows.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = csvHeaders.length + 3;
+        td.className = 'empty-table';
+        td.textContent = 'No rows match your search filter.';
+        tr.appendChild(td);
+        csvPreviewBody.appendChild(tr);
+      } else {
+        filteredRows.forEach((row) => {
+          const tr = document.createElement('tr');
+          const isChecked = row.valid && selectedRowNumbers.has(row.rowNumber);
+
+          if (row.valid) {
+            tr.className = `csv-row-clickable${isChecked ? '' : ' csv-row-unchecked'}`;
+            tr.title = 'Click row to preview message in WhatsApp Preview';
+            tr.addEventListener('click', (e) => {
+              if (e.target.type === 'checkbox') return;
+              const existingIdx = previewRows.findIndex((p) => p.rowNumber === row.rowNumber);
+              if (existingIdx >= 0) {
+                previewIndex = existingIdx;
+              } else {
+                previewRows.push(row);
+                previewIndex = previewRows.length - 1;
+              }
+              csvPreviewBody.querySelectorAll('tr').forEach((el) => el.classList.remove('csv-row-active'));
+              tr.classList.add('csv-row-active');
+              renderLivePreview();
+            });
+          } else {
+            tr.className = 'csv-row-unchecked';
+          }
+
+          const tdCb = document.createElement('td');
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.className = 'row-checkbox';
+          cb.disabled = !row.valid;
+          cb.checked = isChecked;
+          cb.addEventListener('change', () => {
+            if (cb.checked) {
+              selectedRowNumbers.add(row.rowNumber);
+            } else {
+              selectedRowNumbers.delete(row.rowNumber);
+            }
+            renderCsvPreviewTable();
+            updateSelectionStats();
+          });
+          tdCb.appendChild(cb);
+          tr.appendChild(tdCb);
+
+          const tdNum = document.createElement('td');
+          tdNum.textContent = String(row.rowNumber);
+          tr.appendChild(tdNum);
+
+          csvHeaders.forEach((h) => {
+            const td = document.createElement('td');
+            td.textContent = row.raw?.[h] ?? '';
+            tr.appendChild(td);
+          });
+
+          const tdStatus = document.createElement('td');
+          const badge = document.createElement('span');
+          badge.className = `row-badge ${row.valid ? 'row-sent' : 'row-failed'}`;
+          badge.textContent = row.valid ? `Ready (+${row.normalizedMobile})` : 'Skipped';
+          badge.title = row.valid
+            ? `Normalized JID: ${row.normalizedMobile}@s.whatsapp.net`
+            : row.reason;
+          tdStatus.appendChild(badge);
+          tr.appendChild(tdStatus);
+
+          csvPreviewBody.appendChild(tr);
+        });
+      }
+
+      if (inputMode === 'csv') {
+        csvPreviewCard.classList.remove('hidden');
+      }
+    }
+
+    csvSearchInput.addEventListener('input', renderCsvPreviewTable);
+
+    selectAllBtn.addEventListener('click', () => {
+      getFilteredCsvRows()
+        .filter((r) => r.valid)
+        .forEach((r) => selectedRowNumbers.add(r.rowNumber));
+      renderCsvPreviewTable();
+      updateSelectionStats();
+    });
+
+    deselectAllBtn.addEventListener('click', () => {
+      getFilteredCsvRows().forEach((r) => selectedRowNumbers.delete(r.rowNumber));
+      renderCsvPreviewTable();
+      updateSelectionStats();
+    });
+
+    // CSV upload & /preview-csv validation
+    csvInput.addEventListener('change', async () => {
+      hideAlert();
+      const file = csvInput.files?.[0];
+      csvHeaders = [];
+      csvAllRows = [];
+      selectedRowNumbers = new Set();
+      previewRows = [];
+      previewIndex = 0;
+      validCsvCount = 0;
+      csvSearchInput.value = '';
+
+      if (!file) {
+        csvSummary.classList.add('hidden');
+        csvPreviewCard.classList.add('hidden');
+        updateSelectionStats();
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('csv', file);
+
+      try {
+        const res = await fetch('/preview-csv', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (!res.ok) {
+          csvSummary.classList.add('hidden');
+          csvPreviewCard.classList.add('hidden');
+          showAlert(data.error || 'Failed to parse CSV file.');
+          updateSelectionStats();
+          return;
+        }
+
+        validCsvCount = data.validCount;
+        csvHeaders = data.headers || [];
+        csvAllRows = data.rows || [];
+        csvAllRows.filter((r) => r.valid).forEach((r) => selectedRowNumbers.add(r.rowNumber));
+
+        statTotal.textContent = `Total: ${data.totalRows}`;
+        statValid.textContent = `Valid: ${data.validCount}`;
+        statInvalid.textContent = `Skipped: ${data.invalidCount}`;
+        csvSummary.classList.remove('hidden');
+
+        // Render column mapping chips
+        mappingChips.innerHTML = '';
+        const detected = data.detectedColumns || {};
+        [
+          ['{ledger_number}', detected.ledgerNumber],
+          ['{father_name}', detected.fatherName],
+          ['{student_name}', detected.studentName],
+          ['WhatsApp Number', detected.mobileNumber],
+        ].forEach(([tag, colName]) => {
+          if (!colName) return;
+          const chip = document.createElement('span');
+          chip.className = 'mapping-chip';
+          const strong = document.createElement('strong');
+          strong.textContent = tag;
+          chip.append(strong, document.createTextNode(` \u2190 ${colName}`));
+          mappingChips.appendChild(chip);
+        });
+
+        renderCsvPreviewTable();
+
+        if (data.invalidRows && data.invalidRows.length > 0) {
+          invalidList.style.display = 'block';
+          invalidList.innerHTML = '';
+          data.invalidRows.forEach((r) => {
+            const div = document.createElement('div');
+            div.textContent = `Row ${r.rowNumber} (${r.studentName || 'Unnamed'}): ${r.reason}`;
+            invalidList.appendChild(div);
+          });
+        } else {
+          invalidList.style.display = 'none';
+          invalidList.innerHTML = '';
+        }
+
+        if (data.validCount === 0) {
+          showAlert('No valid mobile numbers were found in this CSV.');
+        }
+      } catch (err) {
+        showAlert(`Error reading CSV: ${err.message}`);
+      }
+
+      updateSelectionStats();
+    });
+
+    // Poll WhatsApp connection status
+    async function pollStatus() {
+      try {
+        const res = await fetch('/status');
+        if (!res.ok) return;
+        const data = await res.json();
+        waStatus = data.status;
+
+        statusBadge.classList.remove('status-connected', 'status-qr', 'status-disconnected');
+
+        if (data.status === 'connected') {
+          statusBadge.classList.add('status-connected');
+          statusText.textContent = 'Connected';
+          qrPanel.classList.add('hidden');
+
+          const rawId = data.user?.id ? data.user.id.split(':')[0].split('@')[0] : '';
+          const displayName = data.user?.name ? `${data.user.name} (+${rawId})` : `+${rawId}`;
+          if (rawId) {
+            linkedNumber.textContent = `Linked: ${displayName}`;
+            linkedNumber.style.display = 'inline-block';
+          }
+          if (!campaignActive && liveActivity.textContent.startsWith('Idle')) {
+            liveActivity.textContent = 'WhatsApp ready to send';
+          }
+        } else if (data.status === 'qr' && data.qrDataUrl) {
+          statusBadge.classList.add('status-qr');
+          statusText.textContent = 'Waiting for QR Scan';
+          qrImage.src = data.qrDataUrl;
+          qrPanel.classList.remove('hidden');
+          linkedNumber.style.display = 'none';
+        } else if (data.status === 'connecting') {
+          statusBadge.classList.add('status-qr');
+          statusText.textContent = 'Connecting...';
+          qrPanel.classList.add('hidden');
+          linkedNumber.style.display = 'none';
+        } else {
+          statusBadge.classList.add('status-disconnected');
+          statusText.textContent = 'Disconnected';
+          qrPanel.classList.add('hidden');
+          linkedNumber.style.display = 'none';
+          if (data.lastError && !campaignActive) {
+            liveActivity.textContent = data.lastError;
+          }
+        }
+
+        if (data.reportAvailable && !campaignActive) {
+          downloadReportBtn.style.display = 'inline-flex';
+        }
+
+        updateButtons();
+      } catch {
+        statusBadge.classList.remove('status-connected', 'status-qr');
+        statusBadge.classList.add('status-disconnected');
+        statusText.textContent = 'Server Offline';
+      }
+    }
+
+    pollStatus();
+    setInterval(pollStatus, 1800);
+
+    // Logout / switch number
+    logoutBtn.addEventListener('click', async () => {
+      if (waStatus === 'connected') {
+        const confirmed = window.confirm(
+          'Disconnect the current WhatsApp number and generate a new QR code?'
+        );
+        if (!confirmed) return;
+      }
+
+      logoutBtn.disabled = true;
+      hideAlert();
+
+      try {
+        const res = await fetch('/logout', { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) {
+          showAlert(data.error || 'Unable to disconnect.');
+        } else {
+          liveActivity.textContent = 'Generating fresh QR code...';
+          await pollStatus();
+        }
+      } catch (err) {
+        showAlert(`Disconnect error: ${err.message}`);
+      } finally {
+        updateButtons();
+      }
+    });
+
+    // Append row to live log table
+    function appendLogRow(entry) {
+      if (logRowCount === 0) {
+        logTableBody.innerHTML = '';
+      }
+      logRowCount += 1;
+
+      const tr = document.createElement('tr');
+      const isSent = entry.status === 'Sent';
+
+      const tdIndex = document.createElement('td');
+      tdIndex.textContent = String(logRowCount);
+
+      const tdStudent = document.createElement('td');
+      tdStudent.textContent = entry.studentName || '-';
+
+      const tdMobile = document.createElement('td');
+      tdMobile.textContent = entry.mobile || '-';
+
+      const tdStatus = document.createElement('td');
+      const badge = document.createElement('span');
+      badge.className = `row-badge ${isSent ? 'row-sent' : 'row-failed'}`;
+      badge.textContent = entry.status;
+      tdStatus.appendChild(badge);
+
+      const tdReason = document.createElement('td');
+      tdReason.textContent = entry.reason || '';
+
+      tr.append(tdIndex, tdStudent, tdMobile, tdStatus, tdReason);
+      logTableBody.appendChild(tr);
+
+      const wrap = logTableBody.closest('.table-wrap');
+      if (wrap) {
+        wrap.scrollTop = wrap.scrollHeight;
+      }
+    }
+
+    function updateProgressUI(payload) {
+      const total = payload.total || 0;
+      const current = payload.current || 0;
+      const sent = payload.sent || 0;
+      const failed = payload.failed || 0;
+      const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+
+      progressLabel.textContent = `${current} / ${total} Processed (${sent} Sent)`;
+      progressPercent.textContent = `${pct}%`;
+      progressFill.style.width = `${pct}%`;
+      sentCount.textContent = String(sent);
+      failedCount.textContent = String(failed);
+      totalCount.textContent = String(total);
+      footerSummary.textContent = `${sent} of ${total} sent`;
+    }
+
+    function handleSseEvent(event) {
+      updateProgressUI(event);
+
+      if (event.type === 'start') {
+        liveActivity.textContent = `Sending to ${event.validTotal} selected recipient(s) (delay ${event.minDelaySec}–${event.maxDelaySec}s)...`;
+      } else if (event.type === 'progress' && event.entry) {
+        appendLogRow(event.entry);
+        liveActivity.textContent = `Processed ${event.entry.studentName} (${event.entry.status})`;
+      } else if (event.type === 'waiting') {
+        const secs = (event.delayMs / 1000).toFixed(1);
+        liveActivity.textContent = `Waiting ${secs}s before next message...`;
+      } else if (event.type === 'complete') {
+        liveActivity.textContent = event.aborted
+          ? `Campaign stopped (${event.sent} sent, ${event.failed} failed).`
+          : `Campaign completed (${event.sent} sent, ${event.failed} failed).`;
+        if (event.reportAvailable) {
+          downloadReportBtn.style.display = 'inline-flex';
+        }
+      } else if (event.type === 'error') {
+        showAlert(event.error || 'Campaign failed unexpectedly.');
+        liveActivity.textContent = 'Campaign ended with error.';
+        if (event.reportAvailable) {
+          downloadReportBtn.style.display = 'inline-flex';
+        }
+      }
+    }
+
+    // Start Bulk Campaign (fetch + SSE stream)
+    startBtn.addEventListener('click', async () => {
+      hideAlert();
+      const msg = messageBox.value.trim();
+      const delay = getDelayRange();
+
+      if (!msg || waStatus !== 'connected' || !delay.valid) {
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('message', msg);
+      formData.append('minDelaySec', String(delay.minSec));
+      formData.append('maxDelaySec', String(delay.maxSec));
+
+      let expectedTotal = 0;
+      if (inputMode === 'csv') {
+        const csvFile = csvInput.files?.[0];
+        if (!csvFile || selectedRowNumbers.size === 0) return;
+        formData.append('csv', csvFile);
+        formData.append('selectedRowNumbers', JSON.stringify(Array.from(selectedRowNumbers)));
+        expectedTotal = selectedRowNumbers.size;
+      } else {
+        const rawNumbers = numbersTextarea.value.trim();
+        if (!rawNumbers) return;
+        formData.append('numbersText', rawNumbers);
+        expectedTotal = parseLocalNumberList(rawNumbers).length;
+      }
+
+      if (attachmentToggle.checked && imageInput.files?.[0]) {
+        formData.append('image', imageInput.files[0]);
+      }
+
+      campaignActive = true;
+      logRowCount = 0;
+      logTableBody.innerHTML = '';
+      downloadReportBtn.style.display = 'none';
+      updateProgressUI({ current: 0, total: expectedTotal, sent: 0, failed: 0 });
+      liveActivity.textContent = 'Starting campaign...';
+      updateButtons();
+
+      try {
+        const response = await fetch('/send-bulk', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const contentType = response.headers.get('content-type') || '';
+        if (!response.ok || !contentType.includes('text/event-stream')) {
+          const errData = await response.json().catch(() => ({}));
+          showAlert(errData.error || 'Failed to start bulk campaign.');
+          liveActivity.textContent = 'Campaign could not start.';
+          return;
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const frames = buffer.split(/\r?\n\r?\n/);
+          buffer = frames.pop() ?? '';
+
+          for (const frame of frames) {
+            const dataLines = frame
+              .split(/\r?\n/)
+              .filter((line) => line.startsWith('data:'))
+              .map((line) => line.slice(5).trim());
+
+            if (dataLines.length === 0) continue;
+            try {
+              const payload = JSON.parse(dataLines.join('\n'));
+              handleSseEvent(payload);
+            } catch {
+              // Ignore malformed SSE chunk
+            }
+          }
+        }
+      } catch (err) {
+        showAlert(`Connection lost while streaming campaign progress: ${err.message}`);
+        liveActivity.textContent = 'Stream interrupted.';
+      } finally {
+        campaignActive = false;
+        updateButtons();
+        void pollStatus();
+      }
+    });
+
+    // Stop Campaign
+    stopBtn.addEventListener('click', async () => {
+      stopBtn.disabled = true;
+      liveActivity.textContent = 'Stopping campaign...';
+      try {
+        await fetch('/stop-bulk', { method: 'POST' });
+      } catch (err) {
+        showAlert(`Failed to send stop signal: ${err.message}`);
+      }
+    });
+  </script>
+</body>
+</html>
