@@ -1,0 +1,25 @@
+{
+  "name": "whatsapp-baileys",
+  "version": "1.0.0",
+  "description": "School WhatsApp Bulk Notification Portal powered by Express and Baileys",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "portal": "node server.js"
+  },
+  "keywords": [
+    "whatsapp",
+    "baileys",
+    "whatsapp-web"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^7.0.0-rc14",
+    "csv-parser": "^3.2.1",
+    "express": "^5.3.0",
+    "multer": "^2.5.0",
+    "pino": "^10.4.0",
+    "qrcode": "^1.5.4"
+  }
+}
