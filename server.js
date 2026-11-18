@@ -23,8 +23,9 @@ const AUTH_DIR = path.join(__dirname, 'auth_info_baileys');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
-const MIN_DELAY_MS = 6000;
-const MAX_DELAY_MS = 11000;
+const MIN_DELAY_MS = 60000; // 1 minute default
+const MAX_DELAY_MS = 180000; // 3 minutes default
+const MAX_DELAY_SEC = 1200; // 20 minutes maximum (anti-ban safe limit)
 
 const HEADER_ALIASES = {
   ledgerNumber: [
@@ -466,11 +467,101 @@ function buildDeliveryReportCsv(rows) {
   return `\uFEFF${lines.join('\r\n')}\r\n`;
 }
 
+function normalizeKey(str) {
+  return String(str ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[_\-\/\s]+/g, ' ');
+}
+
 function personalizeMessage(template, row) {
-  return template
-    .replace(/\{ledger_number\}/gi, row.ledgerNumber)
-    .replace(/\{father_name\}/gi, row.fatherName)
-    .replace(/\{student_name\}/gi, row.studentName);
+  if (!template) return '';
+  const rawRecord = row?.raw || {};
+
+  return template.replace(/\{([^{}]+)\}/g, (fullMatch, tag) => {
+    const trimmedTag = tag.trim();
+
+    // 1. Direct exact match in rawRecord (e.g. {Due Amount}, {Mother Name}, {Grade/Class})
+    if (
+      Object.prototype.hasOwnProperty.call(rawRecord, trimmedTag) &&
+      rawRecord[trimmedTag] !== undefined &&
+      rawRecord[trimmedTag] !== null
+    ) {
+      return String(rawRecord[trimmedTag]);
+    }
+
+    // 2. Case-insensitive / normalized key match in rawRecord (e.g. {due_amount}, {grade/class})
+    const normTag = normalizeKey(trimmedTag);
+    const rawKeys = Object.keys(rawRecord);
+    const foundKey = rawKeys.find((k) => normalizeKey(k) === normTag);
+    if (
+      foundKey &&
+      rawRecord[foundKey] !== undefined &&
+      rawRecord[foundKey] !== null
+    ) {
+      return String(rawRecord[foundKey]);
+    }
+
+    // 3. Built-in canonical fallback aliases for common student/school fields
+    if (
+      normTag === 'ledger number' ||
+      normTag === 'ledger no' ||
+      normTag === 'ac ledger no' ||
+      normTag === 'ledger' ||
+      normTag === 'admission no' ||
+      normTag === 'adm no'
+    ) {
+      return String(row.ledgerNumber ?? '');
+    }
+    if (
+      normTag === 'father name' ||
+      normTag === 'fathers name' ||
+      normTag === 'father' ||
+      normTag === 'parent name' ||
+      normTag === 'guardian name'
+    ) {
+      return String(row.fatherName ?? '');
+    }
+    if (
+      normTag === 'student name' ||
+      normTag === 'students name' ||
+      normTag === 'student' ||
+      normTag === 'ward name' ||
+      normTag === 'child name' ||
+      normTag === 'name'
+    ) {
+      return String(row.studentName ?? '');
+    }
+    if (
+      normTag === 'mobile number' ||
+      normTag === 'mobile no' ||
+      normTag === 'contact no' ||
+      normTag === 'contact number' ||
+      normTag === 'mobile' ||
+      normTag === 'phone' ||
+      normTag === 'whatsapp number'
+    ) {
+      return String(row.normalizedMobile ?? row.mobileRaw ?? '');
+    }
+
+    // 4. Match without special characters (alphanumeric only)
+    const alphaTag = trimmedTag.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (alphaTag) {
+      const foundAlphaKey = rawKeys.find(
+        (k) => k.toLowerCase().replace(/[^a-z0-9]/g, '') === alphaTag
+      );
+      if (
+        foundAlphaKey &&
+        rawRecord[foundAlphaKey] !== undefined &&
+        rawRecord[foundAlphaKey] !== null
+      ) {
+        return String(rawRecord[foundAlphaKey]);
+      }
+    }
+
+    // If tag not found in row, keep the placeholder unchanged
+    return fullMatch;
+  });
 }
 
 function waitWithAbort(ms, signal) {
@@ -606,8 +697,15 @@ function parseNumberList(numbersText) {
 }
 
 function parseDelayRange(body) {
-  const rawMin = body?.minDelaySec;
-  const rawMax = body?.maxDelaySec;
+  let rawMin = body?.minDelaySec;
+  let rawMax = body?.maxDelaySec;
+
+  if (rawMin === undefined && body?.minDelayMin !== undefined) {
+    rawMin = Number(body.minDelayMin) * 60;
+  }
+  if (rawMax === undefined && body?.maxDelayMin !== undefined) {
+    rawMax = Number(body.maxDelayMin) * 60;
+  }
 
   const minSec =
     rawMin !== undefined && rawMin !== '' ? Number(rawMin) : MIN_DELAY_MS / 1000;
@@ -615,10 +713,10 @@ function parseDelayRange(body) {
     rawMax !== undefined && rawMax !== '' ? Number(rawMax) : MAX_DELAY_MS / 1000;
 
   if (!Number.isFinite(minSec) || !Number.isFinite(maxSec)) {
-    throw new Error('Delay values must be valid numbers in seconds.');
+    throw new Error('Delay values must be valid numbers.');
   }
-  if (minSec < 0 || maxSec < 0 || maxSec > 600) {
-    throw new Error('Delay seconds must be between 0 and 600.');
+  if (minSec < 0 || maxSec < 0 || maxSec > MAX_DELAY_SEC) {
+    throw new Error(`Delay seconds must be between 0 and ${MAX_DELAY_SEC} (maximum 20 minutes).`);
   }
   if (minSec > maxSec) {
     throw new Error('Minimum delay seconds cannot be greater than maximum delay seconds.');
@@ -629,6 +727,56 @@ function parseDelayRange(body) {
     maxDelaySec: maxSec,
     minDelayMs: Math.round(minSec * 1000),
     maxDelayMs: Math.round(maxSec * 1000),
+  };
+}
+
+function parseTypingRange(body, delayRange) {
+  const simulateTyping = body?.simulateTyping !== 'false' && body?.simulateTyping !== false;
+  if (!simulateTyping) {
+    return {
+      enabled: false,
+      minTypingSec: 0,
+      maxTypingSec: 0,
+      minTypingMs: 0,
+      maxTypingMs: 0,
+    };
+  }
+
+  const rawMin = body?.minTypingSec;
+  const rawMax = body?.maxTypingSec;
+
+  const minSec =
+    rawMin !== undefined && rawMin !== '' ? Number(rawMin) : 2;
+  const maxSec =
+    rawMax !== undefined && rawMax !== '' ? Number(rawMax) : 4;
+
+  if (!Number.isFinite(minSec) || !Number.isFinite(maxSec)) {
+    throw new Error('Typing indicator duration values must be valid numbers in seconds.');
+  }
+  if (minSec < 0 || maxSec < 0 || maxSec > 300) {
+    throw new Error('Typing indicator duration seconds must be between 0 and 300.');
+  }
+  if (minSec > maxSec) {
+    throw new Error(
+      `Minimum typing indicator duration (${minSec}s) cannot be greater than maximum typing duration (${maxSec}s).`
+    );
+  }
+  if (delayRange && maxSec > delayRange.minDelaySec) {
+    const formattedDelay =
+      delayRange.minDelaySec >= 60
+        ? `${(delayRange.minDelaySec / 60).toFixed(1)}m (${delayRange.minDelaySec}s)`
+        : `${delayRange.minDelaySec}s`;
+    throw new Error(
+      `Typing indicator duration (max ${maxSec}s) must be within the random delay time (minimum delay is ${formattedDelay}).`
+    );
+  }
+
+  return {
+    enabled: true,
+    minTypingSec: minSec,
+    maxTypingSec: maxSec,
+    minTypingMs: Math.round(minSec * 1000),
+    maxTypingMs: Math.round(maxSec * 1000),
   };
 }
 
@@ -664,6 +812,7 @@ app.post('/preview-csv', upload.single('csv'), async (req, res) => {
         studentName: r.studentName,
         mobileRaw: r.mobileRaw,
         normalizedMobile: r.normalizedMobile,
+        raw: r.raw,
       })),
       invalidRows: parsed.invalidRows.map((r) => ({
         rowNumber: r.rowNumber,
@@ -735,6 +884,14 @@ app.post(
       return res.status(400).json({ error: err.message });
     }
 
+    let typingRange;
+    try {
+      typingRange = parseTypingRange(req.body, delayRange);
+    } catch (err) {
+      await cleanupFiles();
+      return res.status(400).json({ error: err.message });
+    }
+
     let parsedInput;
     try {
       parsedInput = csvFile
@@ -781,7 +938,16 @@ app.post(
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
+    req.socket?.setTimeout(0);
+    req.socket?.setKeepAlive?.(true, 15000);
     res.flushHeaders?.();
+
+    // Periodic SSE keep-alive comment so browsers and proxies don't drop during long (up to 20 mins) anti-ban delays
+    const keepAliveTimer = setInterval(() => {
+      if (!res.writableEnded && !res.destroyed) {
+        res.write(': keepalive\n\n');
+      }
+    }, 15000);
 
     const sendEvent = (payload) => {
       if (!res.writableEnded && !res.destroyed) {
@@ -807,6 +973,9 @@ app.post(
         validTotal: targetValidRows.length,
         minDelaySec: delayRange.minDelaySec,
         maxDelaySec: delayRange.maxDelaySec,
+        simulateTyping: typingRange.enabled,
+        minTypingSec: typingRange.minTypingSec,
+        maxTypingSec: typingRange.maxTypingSec,
         status: 'running',
       });
 
@@ -832,6 +1001,14 @@ app.post(
           status: 'running',
           entry,
         });
+      }
+
+      let nextTypingMs = 0;
+      if (typingRange.enabled) {
+        nextTypingMs =
+          typingRange.maxTypingMs > typingRange.minTypingMs
+            ? crypto.randomInt(typingRange.minTypingMs, typingRange.maxTypingMs + 1)
+            : typingRange.minTypingMs;
       }
 
       const validRows = targetValidRows;
@@ -870,15 +1047,52 @@ app.post(
         let status = 'Sent';
         let reason = 'Delivered to WhatsApp';
 
+        const currentTypingMs = nextTypingMs;
+
         if (waState.status !== 'connected' || !currentSock) {
           status = 'Failed';
           reason = 'WhatsApp socket disconnected';
         } else {
           try {
-            const payload = imageBuffer
-              ? { image: imageBuffer, caption: personalizedMsg }
-              : { text: personalizedMsg };
-            await currentSock.sendMessage(row.jid, payload);
+            // Optional humanized typing indicator simulation
+            if (typingRange.enabled && currentTypingMs > 0 && !campaign.abortRequested) {
+              sendEvent({
+                type: 'typing',
+                studentName: row.studentName,
+                fatherName: row.fatherName,
+                mobile: row.normalizedMobile,
+                typingMs: currentTypingMs,
+                sent,
+                failed,
+                current,
+                total,
+                status: 'typing',
+              });
+
+              try {
+                await currentSock.sendPresenceUpdate('composing', row.jid);
+              } catch {
+                // Ignore presence update error if non-fatal
+              }
+
+              await waitWithAbort(currentTypingMs, campaign.abortController.signal);
+
+              try {
+                await currentSock.sendPresenceUpdate('paused', row.jid);
+              } catch {
+                // Ignore
+              }
+            }
+
+            if (campaign.abortRequested) {
+              status = 'Failed';
+              reason = 'Campaign stopped by user';
+            } else {
+              const payload = imageBuffer
+                ? { image: imageBuffer, caption: personalizedMsg }
+                : { text: personalizedMsg };
+              await currentSock.sendMessage(row.jid, payload);
+            }
           } catch (sendErr) {
             status = 'Failed';
             reason = sendErr?.message || 'Unknown send error';
@@ -912,23 +1126,44 @@ app.post(
           entry,
         });
 
-        // Variable randomized throttling (user-configured seconds) between messages
+        // Variable randomized delay between messages, with typing indicator happening for upcoming recipient
         const hasMore = i < validRows.length - 1;
         if (hasMore && !campaign.abortRequested) {
-          const delayMs =
+          const totalDelayMs =
             delayRange.maxDelayMs > delayRange.minDelayMs
               ? crypto.randomInt(delayRange.minDelayMs, delayRange.maxDelayMs + 1)
               : delayRange.minDelayMs;
-          sendEvent({
-            type: 'waiting',
-            delayMs,
-            sent,
-            failed,
-            current,
-            total,
-            status: 'waiting',
-          });
-          await waitWithAbort(delayMs, campaign.abortController.signal);
+
+          if (typingRange.enabled) {
+            nextTypingMs =
+              typingRange.maxTypingMs > typingRange.minTypingMs
+                ? crypto.randomInt(typingRange.minTypingMs, typingRange.maxTypingMs + 1)
+                : typingRange.minTypingMs;
+            if (nextTypingMs > totalDelayMs) {
+              nextTypingMs = totalDelayMs;
+            }
+          } else {
+            nextTypingMs = 0;
+          }
+
+          const idlePauseMs = Math.max(0, totalDelayMs - nextTypingMs);
+
+          if (idlePauseMs > 0 && !campaign.abortRequested) {
+            const nextRecipient = validRows[i + 1];
+            sendEvent({
+              type: 'waiting',
+              delayMs: idlePauseMs,
+              totalDelayMs,
+              upcomingTypingMs: nextTypingMs,
+              nextRecipient: nextRecipient?.studentName || nextRecipient?.normalizedMobile,
+              sent,
+              failed,
+              current,
+              total,
+              status: 'waiting',
+            });
+            await waitWithAbort(idlePauseMs, campaign.abortController.signal);
+          }
         }
       }
 
@@ -959,6 +1194,7 @@ app.post(
         reportAvailable: Boolean(campaign.latestReportCsv),
       });
     } finally {
+      clearInterval(keepAliveTimer);
       await cleanupFiles();
       campaign.running = false;
       campaign.abortController = null;
